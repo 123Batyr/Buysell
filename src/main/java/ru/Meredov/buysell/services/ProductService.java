@@ -28,7 +28,7 @@ public class ProductService {
     }
 
     public void saveProduct(Principal principal, Product product, MultipartFile file1, MultipartFile file2, MultipartFile file3) throws IOException {
-       product.setUser(getUserByPrincipal(principal));
+        product.setUser(getUserByPrincipal(principal));
         Image image1;
         Image image2;
         Image image3;
@@ -52,7 +52,7 @@ public class ProductService {
     }
 
     public User getUserByPrincipal(Principal principal) {
-        if (principal == null)return new User();
+        if (principal == null) return new User();
         return userRepository.findByEmail(principal.getName());
     }
 
@@ -66,9 +66,19 @@ public class ProductService {
         return image;
     }
 
-    public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
-    }
+    public void deleteProduct(User user, Long id) {
+        Product product = productRepository.findById(id)
+                .orElse(null);
+        if (product != null) {
+            if (product.getUser().getId().equals(user.getId())) {
+                productRepository.delete(product);
+                log.info("Product with id = {} was deleted", id);
+            } else {
+                log.error("User: {} haven't this product with id = {}", user.getEmail(), id);
+            }
+        } else {
+            log.error("Product with id = {} is not found", id);
+        }    }
 
     public Product getProductById(Long id) {
         return productRepository.findById(id).orElse(null);
